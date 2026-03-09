@@ -120,6 +120,7 @@ export interface DetectedCard {
   name: string
   points: number
   confidence: number
+  box?: { x1: number; y1: number; x2: number; y2: number }
 }
 
 let debugLogged = false

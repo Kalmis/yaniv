@@ -115,7 +115,7 @@ async function infer(rgba: Uint8ClampedArray) {
 
   return Array.from(best.values()).map((box) => {
     const name = CLASS_NAMES[box.classIdx] ?? `?${box.classIdx}`
-    return { name, points: cardPoints(name), confidence: box.score }
+    return { name, points: cardPoints(name), confidence: box.score, box: { x1: box.x1, y1: box.y1, x2: box.x2, y2: box.y2 } }
   })
 }
 

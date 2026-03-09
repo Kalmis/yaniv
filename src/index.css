@@ -1331,8 +1331,14 @@ input[type="number"]::-webkit-inner-spin-button {
 .scanner-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+}
+
+.scanner-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .scanner-loading-overlay {
