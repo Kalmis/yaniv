@@ -54,6 +54,7 @@ export default function CardScanner({ onUseTotal }: Props) {
   const [cards, setCards] = useState<DetectedCard[]>([])
   const [error, setError] = useState('')
   const [showOverlay, setShowOverlay] = useState(true)
+  const [modelReady, setModelReady] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -125,6 +126,7 @@ export default function CardScanner({ onUseTotal }: Props) {
     busyRef.current = false
     latestCardsRef.current = []
     setShowOverlay(true)
+    setModelReady(false)
     setCards([])
     setError('')
 
@@ -156,6 +158,7 @@ export default function CardScanner({ onUseTotal }: Props) {
           })
           if (activeRef.current) {
             latestCardsRef.current = detected
+            setModelReady(true)
             setCards(detected)
             if (detected.length > 0) onUseTotal(totalPoints(detected))
           }
@@ -198,7 +201,12 @@ export default function CardScanner({ onUseTotal }: Props) {
           <div className="scanner-video-wrap">
             <video ref={videoRef} autoPlay playsInline muted className="scanner-video" />
             <canvas ref={canvasRef} className="scanner-overlay" />
-            {showOverlay && <div className="scanner-loading-overlay">Starting camera…</div>}
+            {(showOverlay || !modelReady) && (
+              <div className="scanner-loading-overlay">
+                <div className="scanner-spinner" />
+                <span>{showOverlay ? 'Starting camera…' : 'Loading model…'}</span>
+              </div>
+            )}
           </div>
 
           <div className="scanner-live-panel">
