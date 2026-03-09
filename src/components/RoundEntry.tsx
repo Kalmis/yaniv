@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Player } from '../types'
 import type { RoundInput } from '../gameLogic'
+import CardScanner from './CardScanner'
 
 interface Props {
   roundNumber: number
@@ -258,6 +259,7 @@ export default function RoundEntry({
                 >
                   {playerIdx + 1 < activePlayers.length ? 'Next →' : 'Preview →'}
                 </button>
+                <CardScanner onUseTotal={(total) => setInputVal(String(total))} />
                 {playerIdx === 0 && (
                   <button className="wizard-back" onClick={goBack}>← Back</button>
                 )}
