@@ -601,6 +601,37 @@ input[type="number"]::-webkit-inner-spin-button {
   color: var(--danger);
 }
 
+/* ── Max points inline edit ──────────────────────── */
+.max-pts-btn {
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--text-muted);
+  color: var(--text);
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 0 1px;
+  cursor: pointer;
+  line-height: inherit;
+}
+
+.max-pts-btn:hover {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.max-pts-inline {
+  width: 48px;
+  background: var(--surface2);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 0 4px;
+  text-align: center;
+  outline: none;
+}
+
 /* ── Game header ─────────────────────────────────── */
 .game-header {
   display: flex;

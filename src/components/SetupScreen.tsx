@@ -6,10 +6,28 @@ interface Props {
   onViewHistory: () => void;
 }
 
+/** Always keep exactly one trailing empty slot (unless at max 8). */
+function withTrailingEmpty(arr: string[]): string[] {
+  // Collapse multiple trailing empties into one
+  let end = arr.length;
+  while (end > 1 && arr[end - 1].trim() === "" && arr[end - 2].trim() === "") {
+    end--;
+  }
+  const result = arr.slice(0, end);
+  // Add trailing empty if last slot is filled and under max
+  if (result.length < 8 && result[result.length - 1]?.trim() !== "") {
+    result.push("");
+  }
+  return result;
+}
+
 function getInitialPlayers(): string[] {
   const history = loadHistory();
-  if (history.length === 0) return ["", ""];
-  return history[0].state.players.map((p) => p.name);
+  const base =
+    history.length === 0
+      ? ["", ""]
+      : history[0].state.players.map((p) => p.name);
+  return withTrailingEmpty(base);
 }
 
 function getSuggestions(currentPlayers: string[]): string[] {
@@ -19,9 +37,7 @@ function getSuggestions(currentPlayers: string[]): string[] {
   );
   const seen = new Set<string>();
   const suggestions: string[] = [];
-
-  // Skip the most recent game (already used as defaults), scan the rest
-  for (const game of history.slice(1)) {
+  for (const game of history) {
     for (const player of game.state.players) {
       const key = player.name.trim().toLowerCase();
       if (!current.has(key) && !seen.has(key)) {
@@ -34,50 +50,58 @@ function getSuggestions(currentPlayers: string[]): string[] {
   return suggestions;
 }
 
+function focusInput(idx: number) {
+  const inputs = document.querySelectorAll<HTMLInputElement>(".player-input");
+  inputs[idx]?.focus();
+}
+
 export default function SetupScreen({ onStart, onViewHistory }: Props) {
   const [maxPoints, setMaxPoints] = useState(100);
   const [players, setPlayers] = useState<string[]>(getInitialPlayers);
 
   const suggestions = getSuggestions(players);
+  const filledNames = players.map((p) => p.trim()).filter(Boolean);
+  const canStart = filledNames.length >= 2 && maxPoints >= 10;
 
-  function addPlayer() {
-    if (players.length < 8) setPlayers([...players, ""]);
-  }
-
-  function removePlayer(i: number) {
-    if (players.length <= 2) return;
-    setPlayers(players.filter((_, idx) => idx !== i));
+  function setAndNormalize(next: string[]) {
+    setPlayers(withTrailingEmpty(next));
   }
 
   function updatePlayer(i: number, val: string) {
     const next = [...players];
     next[i] = val;
-    setPlayers(next);
+    setAndNormalize(next);
+  }
+
+  function removePlayer(i: number) {
+    const next = players.filter((_, idx) => idx !== i);
+    // Keep at least 2 fields
+    while (next.length < 2) next.push("");
+    setAndNormalize(next);
   }
 
   function addSuggestion(name: string) {
     if (players.length >= 8) return;
-    // Fill the first empty slot, or append
     const emptyIdx = players.findIndex((p) => p.trim() === "");
+    const next = [...players];
     if (emptyIdx !== -1) {
-      const next = [...players];
       next[emptyIdx] = name;
-      setPlayers(next);
     } else {
-      setPlayers([...players, name]);
+      next.push(name);
     }
+    setAndNormalize(next);
   }
 
-  const filledNames = players.map((p) => p.trim()).filter(Boolean);
-  const canStart = filledNames.length >= 2 && maxPoints >= 10;
+  function handleKeyDown(e: React.KeyboardEvent, i: number) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      focusInput(i + 1);
+    }
+  }
 
   function handleStart() {
     if (!canStart) return;
     onStart(maxPoints, filledNames);
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent, i: number) {
-    if (e.key === "Enter" && i === players.length - 1) addPlayer();
   }
 
   return (
@@ -109,19 +133,20 @@ export default function SetupScreen({ onStart, onViewHistory }: Props) {
       </div>
 
       <div className="card">
-        <h2>Players ({players.length} / 8)</h2>
+        <h2>Players ({filledNames.length} / 8)</h2>
         <div className="player-list">
           {players.map((name, i) => (
             <div key={i} className="player-row">
               <input
+                className="player-input"
                 type="text"
-                placeholder={`Player ${i + 1}`}
+                placeholder={i === players.length - 1 ? "Add player…" : `Player ${i + 1}`}
                 value={name}
                 onChange={(e) => updatePlayer(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, i)}
                 autoFocus={i === 0}
               />
-              {players.length > 2 && (
+              {players.length > 2 && name.trim() !== "" && (
                 <button
                   className="btn-danger"
                   onClick={() => removePlayer(i)}
@@ -133,12 +158,6 @@ export default function SetupScreen({ onStart, onViewHistory }: Props) {
             </div>
           ))}
         </div>
-
-        {players.length < 8 && (
-          <button className="btn-secondary mt-2" onClick={addPlayer}>
-            + Add player
-          </button>
-        )}
 
         {suggestions.length > 0 && players.length < 8 && (
           <div className="suggestions-wrap">

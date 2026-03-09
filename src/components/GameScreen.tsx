@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { GameState } from '../types'
 import type { RoundInput } from '../gameLogic'
 import Scoreboard from './Scoreboard'
@@ -8,11 +8,16 @@ import RoundHistory from './RoundHistory'
 interface Props {
   gameState: GameState
   onRoundSubmit: (input: RoundInput) => void
+  onUpdateMaxPoints: (maxPoints: number) => void
   onNewGame: () => void
 }
 
-export default function GameScreen({ gameState, onRoundSubmit, onNewGame }: Props) {
+export default function GameScreen({ gameState, onRoundSubmit, onUpdateMaxPoints, onNewGame }: Props) {
   const [wizardOpen, setWizardOpen] = useState(false)
+  const [editingMax, setEditingMax] = useState(false)
+  const [maxInput, setMaxInput] = useState('')
+  const maxInputRef = useRef<HTMLInputElement>(null)
+
   const { players, rounds, maxPoints } = gameState
   const activePlayers = players.filter((p) => !p.eliminated)
   const latestRound = rounds.length > 0 ? rounds[rounds.length - 1] : null
@@ -22,12 +27,49 @@ export default function GameScreen({ gameState, onRoundSubmit, onNewGame }: Prop
     onRoundSubmit(input)
   }
 
+  function startEditMax() {
+    setMaxInput(String(maxPoints))
+    setEditingMax(true)
+    setTimeout(() => { maxInputRef.current?.select() }, 0)
+  }
+
+  function commitMax() {
+    const val = Number(maxInput)
+    if (!isNaN(val) && val >= 10) onUpdateMaxPoints(val)
+    setEditingMax(false)
+  }
+
+  function handleMaxKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') commitMax()
+    if (e.key === 'Escape') setEditingMax(false)
+  }
+
   return (
     <div className="container">
       <div className="game-header">
         <h1>Yaniv</h1>
         <div style={{ textAlign: 'right' }}>
-          <div className="game-meta">Max: {maxPoints} pts &nbsp;·&nbsp; Round {rounds.length + 1}</div>
+          <div className="game-meta">
+            {'Max: '}
+            {editingMax ? (
+              <input
+                ref={maxInputRef}
+                className="max-pts-inline"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={maxInput}
+                onChange={(e) => setMaxInput(e.target.value.replace(/[^0-9]/g, ''))}
+                onKeyDown={handleMaxKeyDown}
+                onBlur={commitMax}
+              />
+            ) : (
+              <button className="max-pts-btn" onClick={startEditMax}>
+                {maxPoints}
+              </button>
+            )}
+            {' pts'}&nbsp;·&nbsp;Round {rounds.length + 1}
+          </div>
           <button
             className="btn-secondary"
             style={{ marginTop: 6, fontSize: '0.75rem', padding: '4px 10px' }}

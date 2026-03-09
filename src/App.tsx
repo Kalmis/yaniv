@@ -33,6 +33,11 @@ export default function App() {
     update(next)
   }
 
+  function handleUpdateMaxPoints(maxPoints: number) {
+    if (!gameState) return
+    update({ ...gameState, maxPoints })
+  }
+
   function handleNewGame() {
     update(null)
     setView('play')
@@ -57,6 +62,7 @@ export default function App() {
     <GameScreen
       gameState={gameState}
       onRoundSubmit={handleRoundSubmit}
+      onUpdateMaxPoints={handleUpdateMaxPoints}
       onNewGame={handleNewGame}
     />
   )
