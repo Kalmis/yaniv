@@ -3,6 +3,7 @@ import type { GameState } from './types'
 import { createInitialState, processRound } from './gameLogic'
 import type { RoundInput } from './gameLogic'
 import { loadCurrentGame, saveCurrentGame, appendToHistory } from './storage'
+import { announceRound } from './speech'
 import SetupScreen from './components/SetupScreen'
 import GameScreen from './components/GameScreen'
 import GameOverScreen from './components/GameOverScreen'
@@ -30,6 +31,7 @@ export default function App() {
     if (next.phase === 'gameover') {
       appendToHistory(next)
     }
+    announceRound(next.rounds[next.rounds.length - 1], next)
     update(next)
   }
 
