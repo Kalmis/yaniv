@@ -107,7 +107,7 @@ export default function SetupScreen({ onStart, onViewHistory }: Props) {
   return (
     <div className="container">
       <div className="setup-header">
-        <h1>SAULIN Yaniv</h1>
+        <h1>MAGNUS' Yaniv</h1>
         <p className="subtitle">Score Tracker</p>
       </div>
 
@@ -140,7 +140,9 @@ export default function SetupScreen({ onStart, onViewHistory }: Props) {
               <input
                 className="player-input"
                 type="text"
-                placeholder={i === players.length - 1 ? "Add player…" : `Player ${i + 1}`}
+                placeholder={
+                  i === players.length - 1 ? "Add player…" : `Player ${i + 1}`
+                }
                 value={name}
                 onChange={(e) => updatePlayer(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, i)}

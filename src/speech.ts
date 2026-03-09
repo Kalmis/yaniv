@@ -12,9 +12,9 @@ export function announceRound(round: Round, state: GameState) {
     let line = player.name + ': '
 
     if (ps.calledYaniv && !ps.gotAsafed) {
-      line += 'Yaniv, zero points'
+      line += `Yaniv, zero points, total ${ps.scoreAfter}`
     } else if (ps.didAsaf) {
-      line += 'Asaf, zero points'
+      line += `Asaf, zero points, total ${ps.scoreAfter}`
     } else if (ps.gotAsafed) {
       line += `Asafed, plus 25, total ${ps.scoreAfter}`
     } else {
