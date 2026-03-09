@@ -11,9 +11,23 @@ import HistoryScreen from './components/HistoryScreen'
 
 type View = 'play' | 'history'
 
+function loadSound(): boolean {
+  return localStorage.getItem('yaniv-sound') !== 'off'
+}
+
 export default function App() {
   const [gameState, setGameState] = useState<GameState | null>(loadCurrentGame)
   const [view, setView] = useState<View>('play')
+  const [soundOn, setSoundOn] = useState(loadSound)
+
+  function toggleSound() {
+    setSoundOn((prev) => {
+      const next = !prev
+      localStorage.setItem('yaniv-sound', next ? 'on' : 'off')
+      if (!next) window.speechSynthesis?.cancel()
+      return next
+    })
+  }
 
   function update(next: GameState | null) {
     saveCurrentGame(next)
@@ -31,7 +45,7 @@ export default function App() {
     if (next.phase === 'gameover') {
       appendToHistory(next)
     }
-    announceRound(next.rounds[next.rounds.length - 1], next)
+    if (soundOn) announceRound(next.rounds[next.rounds.length - 1], next)
     update(next)
   }
 
@@ -66,6 +80,8 @@ export default function App() {
       onRoundSubmit={handleRoundSubmit}
       onUpdateMaxPoints={handleUpdateMaxPoints}
       onNewGame={handleNewGame}
+      soundOn={soundOn}
+      onToggleSound={toggleSound}
     />
   )
 }

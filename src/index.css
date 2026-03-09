@@ -601,6 +601,76 @@ input[type="number"]::-webkit-inner-spin-button {
   color: var(--danger);
 }
 
+/* ── Elimination overlay ─────────────────────────── */
+.elim-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.15s ease;
+}
+
+.elim-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: elimPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes elimPop {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.elim-skull {
+  font-size: 5rem;
+  line-height: 1;
+  animation: shake 0.4s ease 0.2s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-12deg); }
+  75%       { transform: rotate(12deg); }
+}
+
+.elim-names {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--danger);
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.elim-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ── Sound toggle ────────────────────────────────── */
+.sound-toggle {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.sound-toggle:hover {
+  border-color: var(--text-muted);
+}
+
 /* ── Max points inline edit ──────────────────────── */
 .max-pts-btn {
   background: none;
