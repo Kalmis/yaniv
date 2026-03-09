@@ -1430,6 +1430,26 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--primary-dark);
 }
 
+.scanner-model-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.scanner-model-toggle button {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.scanner-model-toggle button.active {
+  background: var(--primary);
+  color: #fff;
+}
+
 .scanner-close-btn {
   background: transparent;
   color: var(--text-muted);

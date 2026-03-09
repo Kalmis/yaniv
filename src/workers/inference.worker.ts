@@ -55,15 +55,17 @@ function nms(boxes: Box[]): Box[] {
   return kept
 }
 
-let session: ort.InferenceSession | null = null
-async function getSession() {
-  if (!session) session = await ort.InferenceSession.create(MODEL_URL, { executionProviders: ['wasm'] })
-  return session
+const sessions = new Map<string, ort.InferenceSession>()
+async function getSession(modelUrl: string) {
+  if (!sessions.has(modelUrl)) {
+    sessions.set(modelUrl, await ort.InferenceSession.create(modelUrl, { executionProviders: ['wasm'] }))
+  }
+  return sessions.get(modelUrl)!
 }
 
-let debugLogged = false
+const debugLogged = new Set<string>()
 
-async function infer(rgba: Uint8ClampedArray) {
+async function infer(rgba: Uint8ClampedArray, modelUrl: string) {
   const n = INPUT_SIZE * INPUT_SIZE
   const f32 = new Float32Array(3 * n)
   for (let i = 0; i < n; i++) {
@@ -73,7 +75,7 @@ async function infer(rgba: Uint8ClampedArray) {
   }
   const tensor = new ort.Tensor('float32', f32, [1, 3, INPUT_SIZE, INPUT_SIZE])
 
-  const sess = await getSession()
+  const sess = await getSession(modelUrl)
   const result = await sess.run({ [sess.inputNames[0]]: tensor })
   const output = result[sess.outputNames[0]]
   const data = output.data as Float32Array
@@ -85,9 +87,8 @@ async function infer(rgba: Uint8ClampedArray) {
   const numAttr  = transposed ? d2 : d1
   const numClasses = numAttr - 4
 
-  if (!debugLogged) {
-    debugLogged = true
-    // Find max class confidence score (not bbox coords)
+  if (!debugLogged.has(modelUrl)) {
+    debugLogged.add(modelUrl)
     let maxClassScore = 0
     for (let b = 0; b < numBoxes; b++) {
       for (let c = 0; c < numClasses; c++) {
@@ -95,7 +96,7 @@ async function infer(rgba: Uint8ClampedArray) {
         if (s > maxClassScore) maxClassScore = s
       }
     }
-    console.log('[CardDetect] dims:', dims,
+    console.log('[CardDetect]', modelUrl,
       '| transposed:', transposed,
       '| numBoxes:', numBoxes,
       '| numClasses:', numClasses,
@@ -132,10 +133,10 @@ async function infer(rgba: Uint8ClampedArray) {
   })
 }
 
-self.onmessage = async (e: MessageEvent<{ pixels: ArrayBuffer; id: number }>) => {
-  const { pixels, id } = e.data
+self.onmessage = async (e: MessageEvent<{ pixels: ArrayBuffer; id: number; modelUrl: string }>) => {
+  const { pixels, id, modelUrl } = e.data
   try {
-    const cards = await infer(new Uint8ClampedArray(pixels))
+    const cards = await infer(new Uint8ClampedArray(pixels), modelUrl)
     self.postMessage({ id, ok: true, cards })
   } catch (err) {
     self.postMessage({ id, ok: false, error: String(err) })

@@ -7,6 +7,14 @@ interface Props {
 }
 
 const INPUT_SIZE = 960
+type ModelSize = 'small' | 'large'
+
+function loadModelSize(): ModelSize {
+  return localStorage.getItem('yaniv-model-size') === 'large' ? 'large' : 'small'
+}
+function modelUrl(size: ModelSize) {
+  return `/models/playing-cards-${size}.onnx`
+}
 
 function captureFrame(video: HTMLVideoElement): ArrayBuffer | null {
   const { videoWidth: vw, videoHeight: vh } = video
@@ -55,6 +63,7 @@ export default function CardScanner({ onUseTotal }: Props) {
   const [error, setError] = useState('')
   const [showOverlay, setShowOverlay] = useState(true)
   const [modelReady, setModelReady] = useState(false)
+  const [modelSize, setModelSize] = useState<ModelSize>(loadModelSize)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -153,9 +162,10 @@ export default function CardScanner({ onUseTotal }: Props) {
         const pixels = captureFrame(video)
         if (pixels && workerRef.current) {
           const id = nextId.current++
+          const url = modelUrl(modelSize)
           const detected = await new Promise<DetectedCard[]>((resolve) => {
             callbacks.current.set(id, resolve)
-            workerRef.current!.postMessage({ pixels, id }, [pixels])
+            workerRef.current!.postMessage({ pixels, id, modelUrl: url }, [pixels])
           })
           if (activeRef.current) {
             latestCardsRef.current = detected
@@ -177,6 +187,12 @@ export default function CardScanner({ onUseTotal }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
+  function changeModelSize(size: ModelSize) {
+    localStorage.setItem('yaniv-model-size', size)
+    setModelSize(size)
+    setModelReady(false)
+  }
+
   function close() { setIsOpen(false) }
   const total = totalPoints(cards)
 
@@ -186,6 +202,18 @@ export default function CardScanner({ onUseTotal }: Props) {
         <button className="scanner-btn" onClick={() => setIsOpen(true)}>
           📷 Scan cards
         </button>
+        <div className="scanner-model-toggle">
+          <button
+            className={modelSize === 'small' ? 'active' : ''}
+            onClick={() => changeModelSize('small')}
+            title="Small model — faster"
+          >S</button>
+          <button
+            className={modelSize === 'large' ? 'active' : ''}
+            onClick={() => changeModelSize('large')}
+            title="Large model — more accurate"
+          >L</button>
+        </div>
       </div>
     )
   }
@@ -227,6 +255,18 @@ export default function CardScanner({ onUseTotal }: Props) {
                 {!showOverlay ? 'Point camera at cards…' : ''}
               </div>
             )}
+            <div className="scanner-model-toggle">
+              <button
+                className={modelSize === 'small' ? 'active' : ''}
+                onClick={() => changeModelSize('small')}
+                title="Small model — faster"
+              >S</button>
+              <button
+                className={modelSize === 'large' ? 'active' : ''}
+                onClick={() => changeModelSize('large')}
+                title="Large model — more accurate"
+              >L</button>
+            </div>
             <button className="scanner-close-btn" onClick={close}>✕ Close</button>
           </div>
         </>
