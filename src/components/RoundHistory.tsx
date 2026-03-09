@@ -3,10 +3,11 @@ import type { GameState, Round } from '../types'
 
 interface Props {
   gameState: GameState
+  defaultOpen?: boolean
 }
 
-export default function RoundHistory({ gameState }: Props) {
-  const [open, setOpen] = useState(false)
+export default function RoundHistory({ gameState, defaultOpen = false }: Props) {
+  const [open, setOpen] = useState(defaultOpen)
   const { rounds, players } = gameState
 
   if (rounds.length === 0) return null
@@ -53,13 +54,14 @@ function RoundHistoryItem({
             <span className="history-name">{playerName(ps.playerId)}</span>
 
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              {ps.calledYaniv && !ps.asaf && <span className="tag yaniv">Yaniv</span>}
-              {ps.asaf && <span className="tag asaf">Asaf</span>}
+              {ps.calledYaniv && !ps.gotAsafed && <span className="tag yaniv">Yaniv</span>}
+              {ps.gotAsafed && <span className="tag asaf">Asaf'd</span>}
+              {ps.didAsaf && <span className="tag yaniv">Asaf!</span>}
               {ps.halved && <span className="tag halved">Halved</span>}
               {ps.eliminated && <span className="tag out">Out</span>}
             </div>
 
-            <span className={`history-delta ${ps.points === 0 ? 'zero' : ps.asaf ? 'asaf' : ''}`}>
+            <span className={`history-delta ${ps.points === 0 ? 'zero' : ps.gotAsafed ? 'asaf' : ''}`}>
               {ps.points === 0 ? '0' : `+${ps.points}`}
             </span>
 

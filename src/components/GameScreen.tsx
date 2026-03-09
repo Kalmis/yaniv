@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { GameState } from '../types'
 import type { RoundInput } from '../gameLogic'
 import Scoreboard from './Scoreboard'
@@ -11,9 +12,15 @@ interface Props {
 }
 
 export default function GameScreen({ gameState, onRoundSubmit, onNewGame }: Props) {
+  const [wizardOpen, setWizardOpen] = useState(false)
   const { players, rounds, maxPoints } = gameState
   const activePlayers = players.filter((p) => !p.eliminated)
   const latestRound = rounds.length > 0 ? rounds[rounds.length - 1] : null
+
+  function handleRoundSubmit(input: RoundInput) {
+    setWizardOpen(false)
+    onRoundSubmit(input)
+  }
 
   return (
     <div className="container">
@@ -33,13 +40,27 @@ export default function GameScreen({ gameState, onRoundSubmit, onNewGame }: Prop
 
       <Scoreboard gameState={gameState} latestRound={latestRound} />
 
-      <RoundEntry
-        roundNumber={rounds.length + 1}
-        activePlayers={activePlayers}
-        onSubmit={onRoundSubmit}
-      />
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
+        <button
+          className="btn-primary"
+          style={{ padding: '14px 48px', fontSize: '1.05rem' }}
+          onClick={() => setWizardOpen(true)}
+        >
+          Round done
+        </button>
+      </div>
 
       <RoundHistory gameState={gameState} />
+
+      {wizardOpen && (
+        <RoundEntry
+          roundNumber={rounds.length + 1}
+          activePlayers={activePlayers}
+          maxPoints={maxPoints}
+          onSubmit={handleRoundSubmit}
+          onClose={() => setWizardOpen(false)}
+        />
+      )}
     </div>
   )
 }

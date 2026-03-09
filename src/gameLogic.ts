@@ -11,17 +11,19 @@ function applyHalving(score: number): { score: number; halved: boolean } {
 export interface RoundInput {
   /** Map of playerId -> hand total for this round */
   handTotals: Record<string, number>
-  /** Which player called Yaniv (null if not applicable / no one called) */
+  /** Which player called Yaniv (null if no one called) */
   yanivCallerId: string | null
-  /** Whether Asaf was triggered (only relevant when yanivCallerId is set) */
+  /** Whether Asaf was triggered */
   asaf: boolean
+  /** The player who performed the Asaf — they score 0 (null if no Asaf) */
+  asaferId: string | null
 }
 
 export function processRound(
   state: GameState,
   input: RoundInput,
 ): GameState {
-  const { yanivCallerId, asaf, handTotals } = input
+  const { yanivCallerId, asaf, asaferId, handTotals } = input
   const newRoundId = state.rounds.length + 1
 
   const playerScores: RoundPlayerScore[] = state.players
@@ -29,14 +31,17 @@ export function processRound(
     .map((player) => {
       const handTotal = handTotals[player.id] ?? 0
       const calledYaniv = player.id === yanivCallerId
-      const playerAsaf = calledYaniv && asaf
+      const gotAsafed = calledYaniv && asaf
+      const didAsaf = player.id === asaferId
 
       // Points added this round
       let roundPoints: number
-      if (calledYaniv && !asaf) {
-        roundPoints = 0
+      if (didAsaf) {
+        roundPoints = 0                      // Asafer wins the round
+      } else if (calledYaniv && !asaf) {
+        roundPoints = 0                      // Yaniv success
       } else if (calledYaniv && asaf) {
-        roundPoints = handTotal + 30
+        roundPoints = 25                     // Yaniv caller penalised (flat +25)
       } else {
         roundPoints = handTotal
       }
@@ -50,7 +55,8 @@ export function processRound(
         playerId: player.id,
         points: roundPoints,
         calledYaniv,
-        asaf: playerAsaf,
+        gotAsafed,
+        didAsaf,
         scoreBefore,
         scoreRaw,
         scoreAfter,

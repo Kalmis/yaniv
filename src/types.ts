@@ -11,8 +11,10 @@ export interface RoundPlayerScore {
   points: number
   /** Whether this player called Yaniv */
   calledYaniv: boolean
-  /** Whether Asaf was triggered against this caller */
-  asaf: boolean
+  /** Whether this player called Yaniv and got Asaf'd (received the +25 penalty) */
+  gotAsafed: boolean
+  /** Whether this player was the one who performed the Asaf (scored 0 as a result) */
+  didAsaf: boolean
   /** Score before this round */
   scoreBefore: number
   /** Score after this round (before halving) */
@@ -29,6 +31,12 @@ export interface Round {
 }
 
 export type GamePhase = 'setup' | 'game' | 'gameover'
+
+export interface SavedGame {
+  id: string
+  completedAt: string // ISO timestamp
+  state: GameState
+}
 
 export interface GameState {
   maxPoints: number

@@ -4,9 +4,10 @@ import Scoreboard from './Scoreboard'
 interface Props {
   gameState: GameState
   onNewGame: () => void
+  onViewHistory: () => void
 }
 
-export default function GameOverScreen({ gameState, onNewGame }: Props) {
+export default function GameOverScreen({ gameState, onNewGame, onViewHistory }: Props) {
   const winner = gameState.players.find((p) => p.id === gameState.winnerId)
 
   return (
@@ -23,7 +24,10 @@ export default function GameOverScreen({ gameState, onNewGame }: Props) {
         <Scoreboard gameState={gameState} latestRound={null} />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 24 }}>
+        <button className="btn-secondary" onClick={onViewHistory} style={{ padding: '12px 24px' }}>
+          Past games
+        </button>
         <button
           className="btn-primary"
           onClick={onNewGame}
