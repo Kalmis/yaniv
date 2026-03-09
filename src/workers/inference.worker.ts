@@ -3,7 +3,7 @@ import * as ort from 'onnxruntime-web'
 ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/'
 
 const MODEL_URL = '/models/playing-cards.onnx'
-const INPUT_SIZE = 640
+const INPUT_SIZE = 960
 const CONF_THRESHOLD = 0.25
 const IOU_THRESHOLD = 0.45
 
@@ -87,9 +87,20 @@ async function infer(rgba: Uint8ClampedArray) {
 
   if (!debugLogged) {
     debugLogged = true
-    let max = 0
-    for (let i = 0; i < data.length; i++) if (data[i] > max) max = data[i]
-    console.log('[CardDetect] dims:', dims, '| transposed:', transposed, '| classes:', numClasses, '| maxScore:', max.toFixed(3))
+    // Find max class confidence score (not bbox coords)
+    let maxClassScore = 0
+    for (let b = 0; b < numBoxes; b++) {
+      for (let c = 0; c < numClasses; c++) {
+        const s = transposed ? data[b * numAttr + 4 + c] : data[(4 + c) * numBoxes + b]
+        if (s > maxClassScore) maxClassScore = s
+      }
+    }
+    console.log('[CardDetect] dims:', dims,
+      '| transposed:', transposed,
+      '| numBoxes:', numBoxes,
+      '| numClasses:', numClasses,
+      '| maxClassScore:', maxClassScore.toFixed(3),
+      '| threshold:', CONF_THRESHOLD)
   }
 
   const boxes: Box[] = []
@@ -106,6 +117,8 @@ async function infer(rgba: Uint8ClampedArray) {
     const h  = transposed ? data[b * numAttr + 3] : data[3 * numBoxes + b]
     boxes.push({ x1: cx-w/2, y1: cy-h/2, x2: cx+w/2, y2: cy+h/2, score: bestScore, classIdx: bestClass })
   }
+
+  console.log('[CardDetect] boxes above threshold:', boxes.length)
 
   const best = new Map<number, Box>()
   for (const box of nms(boxes)) {

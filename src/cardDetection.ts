@@ -4,7 +4,7 @@ import * as ort from 'onnxruntime-web'
 ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/'
 
 const MODEL_URL = '/models/playing-cards.onnx'
-const INPUT_SIZE = 640
+const INPUT_SIZE = 960
 const CONF_THRESHOLD = 0.25
 const IOU_THRESHOLD = 0.45
 

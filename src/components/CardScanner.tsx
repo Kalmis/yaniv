@@ -6,7 +6,7 @@ interface Props {
   onUseTotal: (total: number) => void
 }
 
-const INPUT_SIZE = 640
+const INPUT_SIZE = 960
 
 function captureFrame(video: HTMLVideoElement): ArrayBuffer | null {
   const { videoWidth: vw, videoHeight: vh } = video
@@ -73,10 +73,11 @@ export default function CardScanner({ onUseTotal }: Props) {
       new URL('../workers/inference.worker.ts', import.meta.url),
       { type: 'module' },
     )
-    worker.onmessage = (e: MessageEvent<{ id: number; ok: boolean; cards: DetectedCard[] }>) => {
-      const { id, ok, cards } = e.data
+    worker.onmessage = (e: MessageEvent<{ id: number; ok: boolean; cards: DetectedCard[]; error?: string }>) => {
+      const { id, ok, cards, error } = e.data
+      if (!ok) console.error('[CardDetect] worker error:', error)
       const cb = callbacks.current.get(id)
-      if (cb) { callbacks.current.delete(id); if (ok) cb(cards) }
+      if (cb) { callbacks.current.delete(id); cb(ok ? cards : []) }
     }
     workerRef.current = worker
     return () => worker.terminate()
