@@ -3,7 +3,7 @@ import type { GameState } from './types'
 import { createInitialState, processRound } from './gameLogic'
 import type { RoundInput } from './gameLogic'
 import { loadCurrentGame, saveCurrentGame, appendToHistory } from './storage'
-import { announceRound } from './speech'
+import { announceRound, announceWinner } from './speech'
 import SetupScreen from './components/SetupScreen'
 import GameScreen from './components/GameScreen'
 import GameOverScreen from './components/GameOverScreen'
@@ -44,8 +44,15 @@ export default function App() {
     const next = processRound(gameState, input)
     if (next.phase === 'gameover') {
       appendToHistory(next)
+      if (soundOn) {
+        const winner = next.players.find((p) => p.id === next.winnerId)
+        announceRound(next.rounds[next.rounds.length - 1], next, () => {
+          if (winner) announceWinner(winner.name, winner.score)
+        })
+      }
+    } else {
+      if (soundOn) announceRound(next.rounds[next.rounds.length - 1], next)
     }
-    if (soundOn) announceRound(next.rounds[next.rounds.length - 1], next)
     update(next)
   }
 
