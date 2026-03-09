@@ -243,11 +243,12 @@ export default function RoundEntry({
                 <input
                   ref={inputRef}
                   className="wizard-pts-input"
-                  type="number"
-                  min={0}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="Hand total"
                   value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
+                  onChange={(e) => setInputVal(e.target.value.replace(/[^0-9]/g, ''))}
                   onKeyDown={handleKeyDown}
                 />
                 <button
